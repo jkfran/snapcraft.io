@@ -261,4 +261,26 @@ Builds for
     });
   });
 </script>
+
+{# Please put this library where it should be: #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+<script>
+{# Please make this work for production and when we run it locally: #}
+var socket = io.connect('http://' + document.domain + ':' + location.port + '/builds');
+
+{# It would be nice if for some reason this fail
+  to keep doing the old refresh of the table #}
+socket.on('connected', function() {
+    socket.emit('join', "{{ snap_name }}");
+});
+
+socket.on('build_info', function() {
+    console.log('Todo: Update table');
+});
+
+socket.on('server_info', function(msg) {
+    console.log('Server: ' + msg);
+});
+</script>
 {% endblock %}

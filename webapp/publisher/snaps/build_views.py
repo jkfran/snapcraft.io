@@ -6,6 +6,7 @@ from hashlib import md5
 import flask
 import talisker.requests
 from canonicalwebteam.launchpad import Launchpad
+from flask_socketio import emit, join_room
 from requests.exceptions import HTTPError
 
 # Local
@@ -13,7 +14,7 @@ from webapp.api import dashboard as api
 from webapp.api.exceptions import ApiError, ApiResponseErrorList
 from webapp.api.github import GitHub, InvalidYAML
 from webapp.decorators import login_required
-from webapp.extensions import csrf
+from webapp.extensions import csrf, socketio
 from webapp.publisher.snaps.builds import map_build_and_upload_states
 from webapp.publisher.views import _handle_error, _handle_error_list
 from werkzeug.exceptions import Unauthorized
@@ -335,9 +336,7 @@ def post_snap_builds(snap_name):
             # We can remove it and continue with the normal process
             if not repo_exist["store_name"]:
                 # This conditional should be removed when issue 2657 is solved
-                launchpad._request(
-                    path=repo_exist["self_link"][32:], method="DELETE"
-                )
+                launchpad.request(url=repo_exist["self_link"], method="DELETE")
             else:
                 flask.flash(
                     "The specified repository is being used by another snap:"
@@ -520,3 +519,29 @@ def post_update_gh_webhooks(snap_name):
     return flask.redirect(
         flask.url_for(".get_snap_builds", snap_name=snap_name)
     )
+
+
+@csrf.exempt
+def post_launchpad_webhook(snap_name):
+    emit("build_info", {"data": "foo"}, namespace="/builds", room=snap_name)
+
+    # data = flask.request.json["data"]
+
+    # if not launchpad.validate_webhook_signature(
+    #     flask.request.data, flask.request.headers.get("X-Hub-Signature")
+    # ):
+    #     return ("Invalid secret", 403)
+
+    return ("", 204)
+
+
+@socketio.on("connect", namespace="/builds")
+def socket_builds_connect():
+    emit("connected")
+    emit("server_info", "Connected to /builds namespace")
+
+
+@socketio.on("join", namespace="/builds")
+def on_join(snap_name):
+    join_room(snap_name)
+    emit("server_info", f"Listening to {snap_name} build changes.")

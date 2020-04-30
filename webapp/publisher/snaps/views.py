@@ -110,6 +110,12 @@ publisher_snaps.add_url_rule(
     view_func=build_views.post_disconnect_repo,
     methods=["POST"],
 )
+publisher_snaps.add_url_rule(
+    "/<snap_name>/builds/launchpad/webhook",
+    view_func=build_views.post_launchpad_webhook,
+    methods=["POST"],
+)
+
 
 # Release views
 publisher_snaps.add_url_rule(

@@ -5,17 +5,19 @@ The web frontend for the snap store.
 """
 
 import talisker.requests
-import webapp.api
+
 from canonicalwebteam.flask_base.app import FlaskBase
+
+import webapp.api
 from webapp.blog.views import init_blog
 from webapp.docs.views import init_docs
-from webapp.extensions import csrf
+from webapp.extensions import csrf, socketio
 from webapp.first_snap.views import first_snap
 from webapp.handlers import set_handlers
-from webapp.login.views import login
 from webapp.login.oauth_views import oauth
-from webapp.publisher.snaps.views import publisher_snaps
+from webapp.login.views import login
 from webapp.publisher.github.views import publisher_github
+from webapp.publisher.snaps.views import publisher_snaps
 from webapp.publisher.views import account
 from webapp.snapcraft.views import snapcraft_blueprint
 from webapp.store.views import store_blueprint
@@ -71,3 +73,4 @@ def init_snapcraft(app, testing=False):
 
 def init_extensions(app):
     csrf.init_app(app)
+    socketio.init_app(app)
